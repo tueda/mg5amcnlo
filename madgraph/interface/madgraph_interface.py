@@ -6154,7 +6154,10 @@ This implies that with decay chains:
         add_options = list(additional_options)
 
         # Always refresh the installer if already present
-        if not os.path.isdir(pjoin(MG5DIR,'HEPTools','HEPToolsInstallers')):
+        # unless MG5_NO_REFRESH_HEPTOOLS_INSTALLERS is set
+        no_refresh_heptools_installers = os.environ.get('MG5_NO_REFRESH_HEPTOOLS_INSTALLERS','')
+        has_heptools_installers = os.path.isdir(pjoin(MG5DIR,'HEPTools','HEPToolsInstallers'))
+        if not has_heptools_installers:
             if HepToolsInstaller_web_address is None:
                 raise MadGraph5Error("The option 'HepToolsInstaller_web_address'"+\
                              " must be specified in function advanced_install"+\
@@ -6162,10 +6165,13 @@ This implies that with decay chains:
             if not os.path.isdir(pjoin(MG5DIR,'HEPTools')):
                 os.mkdir(pjoin(MG5DIR,'HEPTools'))
         elif not HepToolsInstaller_web_address is None:
-            shutil.rmtree(pjoin(MG5DIR,'HEPTools','HEPToolsInstallers'))
+            if not no_refresh_heptools_installers:
+                shutil.rmtree(pjoin(MG5DIR,'HEPTools','HEPToolsInstallers'))
         if not HepToolsInstaller_web_address is None:
+            if has_heptools_installers and no_refresh_heptools_installers:
+                pass
             # Download HEPToolsInstaller (unless the --local option is used)
-            if not '--local' in add_options:
+            elif not '--local' in add_options:
                 logger.info('Downloading the HEPToolInstaller at:\n   %s'%
                                                       HepToolsInstaller_web_address)
                 # Guess if it is a local or web address
